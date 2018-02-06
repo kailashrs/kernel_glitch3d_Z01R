@@ -63,7 +63,6 @@ cpu_enable_trap_ctr_access(const struct arm64_cpu_capabilities *__unused)
 DEFINE_PER_CPU_READ_MOSTLY(struct bp_hardening_data, bp_hardening_data);
 
 #ifdef CONFIG_KVM
-extern char __psci_hyp_bp_inval_start[], __psci_hyp_bp_inval_end[];
 extern char __smccc_workaround_1_smc_start[];
 extern char __smccc_workaround_1_smc_end[];
 extern char __smccc_workaround_1_hvc_start[];
@@ -110,8 +109,6 @@ static void __install_bp_hardening_cb(bp_hardening_cb_t fn,
 	spin_unlock(&bp_lock);
 }
 #else
-#define __psci_hyp_bp_inval_start	NULL
-#define __psci_hyp_bp_inval_end		NULL
 #define __smccc_workaround_1_smc_start		NULL
 #define __smccc_workaround_1_smc_end		NULL
 #define __smccc_workaround_1_hvc_start		NULL
@@ -567,20 +564,12 @@ const struct arm64_cpu_capabilities arm64_errata[] = {
 	{
 		.capability = ARM64_HARDEN_BRANCH_PREDICTOR,
 		MIDR_ALL_VERSIONS(MIDR_KRYO3G),
-#ifdef CONFIG_PSCI_BP_HARDENING
-		.enable = enable_psci_bp_hardening,
-#else
-		.enable = enable_smccc_arch_workaround_1,
-#endif
+		.cpu_enable = enable_smccc_arch_workaround_1,
 	},
 	{
 		.capability = ARM64_HARDEN_BRANCH_PREDICTOR,
 		MIDR_ALL_VERSIONS(MIDR_KRYO2XX_GOLD),
-#ifdef CONFIG_PSCI_BP_HARDENING
-		.cpu_enable = enable_psci_bp_hardening,
-#else
 		.cpu_enable = enable_smccc_arch_workaround_1,
-#endif
 	},
 	{
 		.capability = ARM64_HARDEN_BRANCH_PREDICTOR,
