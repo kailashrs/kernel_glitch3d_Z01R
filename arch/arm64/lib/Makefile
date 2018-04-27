@@ -19,5 +19,9 @@ CFLAGS_atomic_ll_sc.o	:= -ffixed-x1 -ffixed-x2        		\
 		   -fcall-saved-x18
 
 CFLAGS_REMOVE_atomic_ll_sc.o := -pg
+GCOV_PROFILE_atomic_ll_sc.o	:= n
+KASAN_SANITIZE_atomic_ll_sc.o	:= n
+KCOV_INSTRUMENT_atomic_ll_sc.o	:= n
+UBSAN_SANITIZE_atomic_ll_sc.o	:= n
 
 obj-$(CONFIG_CRC32) += crc32.o
