@@ -8079,8 +8079,9 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 		record_wakee(p);
 		want_affine = (!wake_wide(p, sibling_count_hint) && !wake_cap(p, cpu, prev_cpu)
 			      && cpumask_test_cpu(cpu, tsk_cpus_allowed(p)));
+	}
 
-	if (energy_aware()) {
+	if (energy_aware() && !(cpu_rq(prev_cpu)->rd->overutilized)) {
 		rcu_read_lock();
 		/*
 		 * If the sync flag is set but ignored, prefer to
