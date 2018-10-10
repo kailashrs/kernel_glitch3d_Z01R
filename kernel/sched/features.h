@@ -137,3 +137,9 @@ SCHED_FEAT(HISI_FILTER, true)
  * If disabled, boosts will only bias tasks to higher-capacity CPUs.
  */
 SCHED_FEAT(SCHEDTUNE_BOOST_UTIL, true)
+
+/*
+ * Use the Simplified Energy Model for EAS accounting only for
+ * active costs of CPUs.
+ */
+SCHED_FEAT(EAS_SIMPLIFIED_EM, true)
