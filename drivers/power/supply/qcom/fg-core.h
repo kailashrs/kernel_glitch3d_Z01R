@@ -441,6 +441,11 @@ static const struct fg_pt fg_tsmc_osc_table[] = {
 	{  90,		444992 },
 };
 
+struct fg_saved_data {
+	union power_supply_propval val;
+	unsigned long last_req_expires;
+};
+
 struct fg_chip {
 	struct thermal_zone_device	*tz_dev;
 	struct device		*dev;
@@ -541,11 +546,15 @@ struct fg_chip {
 	struct work_struct	esr_filter_work;
 	struct alarm		esr_filter_alarm;
 	ktime_t			last_delta_temp_time;
+<<<<<<< HEAD
 	struct delayed_work	safety_upgrade_work;//ASUS
 	u8			profile_value_esr_rslow_chg;
 	u8			profile_value_esr_rslow_dischg;
 	int			profile_offset_esr_rslow_chg;
 	int			profile_offset_esr_rslow_dischg;
+=======
+	struct fg_saved_data	saved_data[POWER_SUPPLY_PROP_MAX];
+>>>>>>> 6cc1ce635c123... power: qpnp-fg-gen3: Limit how frequently fg data can be queried
 };
 
 /* Debugfs data structures are below */
