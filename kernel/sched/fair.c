@@ -181,6 +181,7 @@ unsigned int sysctl_sched_cfs_bandwidth_slice		= 5000UL;
  * (default: ~20%)
  */
 unsigned int capacity_margin				= 1280;
+unsigned int sysctl_sched_capacity_margin 		= 1078; /* ~5% margin */
 unsigned int sysctl_sched_capacity_margin_down 		= 1205; /* ~15% margin */
 
 #ifdef CONFIG_SCHED_WALT
@@ -7320,7 +7321,7 @@ static unsigned long cpu_estimated_capacity(int cpu, struct task_struct *p)
 #else
 static unsigned long cpu_estimated_capacity(int cpu, struct task_struct *p)
 {
-	return cpu_util_wake(cpu, p);
+	return cpu_util_without(cpu, p);
 }
 #endif
 
