@@ -6481,7 +6481,7 @@ wake_affine_idle(int this_cpu, int prev_cpu, int sync)
 	 */
 	if (idle_cpu(this_cpu) && cpus_share_cache(this_cpu, prev_cpu))
 		return idle_cpu(prev_cpu) ? prev_cpu : this_cpu;
-	
+
 	if (sync && cpu_rq(this_cpu)->nr_running == 1)
 		return this_cpu;
 
@@ -6546,7 +6546,7 @@ static int wake_affine(struct sched_domain *sd, struct task_struct *p,
 	schedstat_inc(p->se.statistics.nr_wakeups_affine_attempts);
 	if (target == nr_cpumask_bits)
 		return prev_cpu;
-		
+
 	schedstat_inc(sd->ttwu_move_affine);
 	schedstat_inc(p->se.statistics.nr_wakeups_affine);
 	return target;
@@ -7804,7 +7804,7 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 /*
  * Disable WAKE_AFFINE in the case where task @p doesn't fit in the
  * capacity of either the waking CPU @cpu or the previous CPU @prev_cpu.
- * 
+ *
  * In that case WAKE_AFFINE doesn't make sense and we'll let
  * BALANCE_WAKE sort things out.
  */
@@ -9055,7 +9055,7 @@ static struct task_struct *hisi_get_heaviest_task(
 
 		tsk = task_of(se);
 		util = boosted_task_util(tsk);
-		
+
 #ifdef CONFIG_CGROUP_SCHEDTUNE
 		boosted = schedtune_task_boost(p) > 0;
 		prefer_idle = schedtune_prefer_idle(p) > 0;
@@ -9215,7 +9215,7 @@ next:
 		env->flags &= ~(LBF_IGNORE_BIG_TASKS |
 				LBF_IGNORE_PREFERRED_CLUSTER_TASKS |
 				LBF_IGNORE_STUNE_BOOSTED_TASKS);
-				
+
 		env->loop = orig_loop;
 		goto redo;
 	}
