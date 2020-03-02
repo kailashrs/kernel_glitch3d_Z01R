@@ -2162,44 +2162,6 @@ void resume_console(void)
 	int i = 0;
 	nSuspendInProgress = 0;
 
-	//ASUS_BSP [+++] jeff_gu Add GPIO wakeup information
-	if (pm_pwrcs_ret)
-	{
-		desc = irq_to_desc(pm_wakeup_irq);
-		if (desc == NULL)
-			name = "stray irq";
-		else if (desc->action && desc->action->name)
-			name = desc->action->name;
-
-		ASUSEvtlog("[PM] Suspended for %lld.%03lu secs\n", pwrcs_time_int, pwrcs_time_dec);
-
-		if((pm_wakeup_irq == 0 && gic_irq_cnt == 0) || pm_wakeup_irq != 0)
-		{
-			ASUSEvtlog("[PM] IRQs triggered:%d name=%s\n",pm_wakeup_irq,name);
-		}
-
-		if(gic_irq_cnt != 0)
-		{
-			for(i = 0; i < gic_irq_cnt;i++)
-			{
-				desc = irq_to_desc(gic_resume_irq[i]);
-				if (desc == NULL)
-					name = "stray irq";
-				else if (desc->action && desc->action->name)
-					name = desc->action->name;
-
-				ASUSEvtlog("[PM] GIC IRQs triggered:%d name=%s\n",gic_resume_irq[i],name);
-			}
-		}
-		pm_pwrcs_ret=0;
-	}
-	else
-	{
-		ASUSEvtlog("[PM] Suspended aborted ,wakeup source=%s\n", g_asus_wsName);
-	}
-	//ASUS_BSP [---] jeff_gu Add GPIO wakeup information
-
-	ASUSEvtlog("[UTS] System Resume\n");
 	if (!console_suspend_enabled)
 		return;
 	down_console_sem();

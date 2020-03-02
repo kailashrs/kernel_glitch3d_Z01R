@@ -28,9 +28,6 @@
 
 static unsigned int sleep_time_bin[NUM_BINS] = {0};
 
-s64 pwrcs_time_int;
-unsigned long pwrcs_time_dec;
-
 static int tk_debug_show_sleep_time(struct seq_file *s, void *data)
 {
 	unsigned int bin;
@@ -82,7 +79,5 @@ void tk_debug_account_sleep_time(struct timespec64 *t)
 	printk_deferred(KERN_INFO "Suspended for %lld.%03lu seconds\n",
 			(s64)t->tv_sec, t->tv_nsec / NSEC_PER_MSEC);
     //ASUSEvtlog("[PM] Suspended for %lld.%03lu secs \n", (s64)t->tv_sec, t->tv_nsec / NSEC_PER_MSEC);
-    pwrcs_time_int = (s64)t->tv_sec;
-    pwrcs_time_dec = t->tv_nsec / NSEC_PER_MSEC;
 }
 
