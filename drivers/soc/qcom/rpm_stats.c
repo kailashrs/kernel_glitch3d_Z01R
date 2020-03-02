@@ -31,7 +31,6 @@
 #define GET_PDATA_OF_ATTR(attr) \
 	(container_of(attr, struct msm_rpmstats_kobj_attr, ka)->pd)
 
-extern u32 asus_debug_suspend;
 extern bool asus_enter_suspend;
 
 struct msm_rpmstats_record {
@@ -258,21 +257,16 @@ void asus_show_rpm_sleep_count (void) {
 
 		do_gettimeofday(&last_time);
 
-		if((last_time.tv_sec-now_time.tv_sec) >= MAX_TIME){
-			asus_debug_suspend = 1;
+		if((last_time.tv_sec-now_time.tv_sec) >= MAX_TIME)
 			first_count = false;
-		}else{
-			asus_debug_suspend = 0;
-		}
 	}else{
 		local_cxsd = data[1].count;
-		asus_debug_suspend = 0;
 		first_count = false;
 	}
 
 DONE:
 	iounmap(prvdata.reg_base);
-	printk("RPM Mode:aosd count=%d;cxsd count=%d;asus_enter_suspend=%d;asus_debug_suspend=%d\n", data[0].count, data[1].count, asus_enter_suspend, asus_debug_suspend);
+	printk("RPM Mode:aosd count=%d;cxsd count=%d;asus_enter_suspend=%d\n", data[0].count, data[1].count, asus_enter_suspend);
 	if(asus_enter_suspend)
 		asus_enter_suspend = false;
 	return ;
