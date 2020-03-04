@@ -16,7 +16,6 @@
 #define mutex_remove_waiter(lock, waiter, task) \
 		__list_del((waiter)->list.prev, (waiter)->list.next)
 
-//extern struct task_struct	*mutex_owner_asusdebug;
 #ifdef CONFIG_MUTEX_SPIN_ON_OWNER
 /*
  * The mutex owner can get read and written to locklessly.
@@ -27,14 +26,12 @@
 static inline void mutex_set_owner(struct mutex *lock)
 {
 	WRITE_ONCE(lock->owner, current);
-	//WRITE_ONCE(lock->mutex_owner_asusdebug, current);
 
 }
 
 static inline void mutex_clear_owner(struct mutex *lock)
 {
 	WRITE_ONCE(lock->owner, NULL);
-	//WRITE_ONCE(lock->mutex_owner_asusdebug, NULL);
 }
 #else
 static inline void mutex_set_owner(struct mutex *lock)

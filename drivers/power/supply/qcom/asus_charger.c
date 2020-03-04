@@ -13,21 +13,6 @@
 
 #include "asus_charger.h"
 
-
-#define smblib_err(chg, fmt, ...)		\
-	pr_err("%s: %s: " fmt, chg->name,	\
-		__func__, ##__VA_ARGS__)	\
-
-#define smblib_dbg(chg, reason, fmt, ...)			\
-	do {							\
-		if (*chg->debug_mask & (reason))		\
-			pr_info("%s: %s: " fmt, chg->name,	\
-				__func__, ##__VA_ARGS__);	\
-		else						\
-			pr_debug("%s: %s: " fmt, chg->name,	\
-				__func__, ##__VA_ARGS__);	\
-	} while (0)
-
 #define HVDCP_PULSE_COUNT_MAX 0x135B
 
 #define ASUS_MONITOR_CYCLE		60000
@@ -310,14 +295,12 @@ int asus_check_batt_health(struct smb_charger *chg)
 		cur_state = POWER_SUPPLY_HEALTH_COLD;
 		if (chg->asus_chg->last_batt_health != cur_state) {
 			CHG_DBG_E("JEITA Hard Cold is triggered\n");
-			ASUSErclog(ASUS_JEITA_HARD_COLD, "JEITA Hard Cold is triggered");
 		}
 	}
 	else if (stat & BAT_TEMP_STATUS_TOO_HOT_BIT) {
 		cur_state = POWER_SUPPLY_HEALTH_OVERHEAT;
 		if (chg->asus_chg->last_batt_health != cur_state) {
 			CHG_DBG_E("JEITA Hard Hot is triggered\n");
-			ASUSErclog(ASUS_JEITA_HARD_HOT, "JEITA Hard Hot is triggered");
 		}
 	}
 	else if (stat & BAT_TEMP_STATUS_COLD_SOFT_LIMIT_BIT) {
@@ -327,7 +310,6 @@ int asus_check_batt_health(struct smb_charger *chg)
 		cur_state = POWER_SUPPLY_HEALTH_WARM;
 		if (chg->asus_chg->last_batt_health != cur_state) {
 			CHG_DBG_E("JEITA Soft Hot is triggered\n");
-			ASUSErclog(ASUS_JEITA_SOFT_HOT, "JEITA Soft Hot is triggered");
 		}
 	}
 	else
@@ -349,20 +331,6 @@ int asus_set_prop_pd_qc_state(struct smb_charger *chg,
 	chg->asus_chg->quick_charge_ac_flag = val->intval;
 
 	return 0;
-}
-
-extern u32 asus_rpm_count[2];
-extern uint32_t asus_rpmh_counts[5];
-static void asus_dump_sleep_count(void) {
-	if(asus_rpm_count[0] == 0xffffffff || asus_rpmh_counts[1] == 0xffffffff){
-		printk("%s:rpm or rpmh count is not init!\n", __func__);
-		return ;
-	}
-
-	ASUSEvtlog("aosd=0x%x;cxsd=0x%x;APSS=0x%x;MPSS=0x%x;ADSP=0x%x;CDSP=0x%x;SLPI=0x%x",
-		asus_rpm_count[0], asus_rpm_count[1], asus_rpmh_counts[0],
-		asus_rpmh_counts[1], asus_rpmh_counts[2],
-		asus_rpmh_counts[3], asus_rpmh_counts[4]);
 }
 
 static char *dual_charge_type_str[]={
@@ -466,19 +434,6 @@ static int asus_print_all(void)
 	printk(KERN_INFO "%s", battInfo);
 	if(chip_dev->chg.asus_capacity != batt_info.capacity){
 		chip_dev->chg.asus_capacity = batt_info.capacity;
-		ASUSEvtlog("[BAT][Ser]report Capacity==>%d,FCC:%d,BMS:%d,V:%d,Cur:%d,Temp:%s%d.%dC,Cable:%d(%s),Status:%s\n", 
-			batt_info.capacity,
-			batt_info.fcc,
-			batt_info.capacity,
-			batt_info.voltage_now,
-			batt_info.current_now,
-			batt_info.temperature_negative_sign,
-			batt_info.temperature10,
-			batt_info.temperature,
-			chip_dev->chg.asus_chg->asus_charging_type,
-			asus_charging_type_str[chip_dev->chg.asus_chg->asus_charging_type],
-			batt_status_str[batt_info.status]);
-		asus_dump_sleep_count();
 	}
 
 	smblib_read(&chip_dev->chg, 0x4582, &val);
@@ -495,7 +450,6 @@ static int asus_print_all(void)
             cnt = 0;
         if(cnt%5 == 0) {
             cnt = 0;
-            ASUSEvtlog("INOV Triggered pmi_THERM_STS[4582]=0x%x, TEMP_RANGE_STS[1606]=0x%x\n",val, therm_sts);
         }
         cnt++;
     }
@@ -628,10 +582,8 @@ bool is_apsd_done(struct smb_charger *chg)
 	u8 apsd_stat;
 
 	rc = smblib_read(chg, APSD_STATUS_REG, &apsd_stat);
-	if (rc < 0) {
-		smblib_err(chg, "Couldn't read APSD_STATUS rc=%d\n", rc);
+	if (rc < 0)
 		return false;
-	}
     return apsd_stat & APSD_DTC_STATUS_DONE_BIT;
 }
 
@@ -642,7 +594,6 @@ int asus_get_prop_usb_present(struct smb_charger *chg)
 
 	rc = smblib_get_prop_usb_present(chg, &val);
 	if (rc < 0) {
-		smblib_err(chg, "Couldn't get usb present rc = %d\n", rc);
 		return rc;
 	}
 
@@ -790,7 +741,6 @@ void asus_log_chg_mode(u8 apsd_result_bit)
         break;
     }
 
-    ASUSEvtlog("[USB] set_chg_mode:%s\n", usb_type_str[chg_type]);
 }
 
 #define SWITCH_QC_NOT_QUICK_CHARGING_10W	4
@@ -1701,27 +1651,23 @@ static ssize_t asus_charge_limit_enable_proc_write(struct file *filp, const char
 			pr_err("%s check ADF return true\n",__FUNCTION__);
             charger_limit_enable = true;
             charger_flag= true;
-////      ASUSErclog(ASUS_DEMO_APP, "start WW Demo APP");
             pr_info("charge_limit_enable\n");
         }else {
 			pr_err("%s check ADF return false\n",__FUNCTION__);
             charger_limit_enable = false;
             charger_flag = true;
             cancel_delayed_work(&charging_limit_work);
-////      ASUSErclog(ASUS_DEMO_APP, "start WW Demo APP Error for check ADF");
             pr_info("charge_limit_disable_1\n");
         }
     #else
 		charger_limit_enable = true;
 		charger_flag= true;
-////	ASUSErclog(ASUS_DEMO_APP, "start CN Demo APP");
 		pr_info("charge_limit_enable\n");
     #endif
 	} else if(flag == 0) {
 		charger_limit_enable = false;
 		charger_flag = true;
 		cancel_delayed_work(&charging_limit_work);
-////	ASUSErclog(ASUS_DEMO_APP, "stop Demo APP");
 		pr_info("charge_limit_disable_0\n");
 	} else {
 		pr_info("%s input error",__FUNCTION__);
@@ -2248,12 +2194,6 @@ static int asus_do_soft_jeita(struct smb_charger *chg)
 
     CHG_DBG("aicl_result = %d, inov_triggered = %d, aicl_low = %d, usb_100_wa = %d, aicl_low_cnt = %d, flt_chg_rerun_apsd = %d, flt_chg_chk_cnt = %d\n", 
         aicl_result, inov_triggered, aicl_low, usb_100_wa, aicl_low_cnt, flt_chg_rerun_apsd, chg->asus_chg->flt_chg_chk_cnt);
-    if (aicl_done && aicl_low) {
-        ASUSEvtlog("aicl done & low, aicl_result=%d\n", aicl_result);
-    }
-    if (aicl_fail) {
-        ASUSEvtlog("aicl fail, aicl_stat=0x%02x\n", aicl_stat);
-    }
 
     // re-run apsd when aicl fail
     if (aicl_fail || usb_100_wa || aicl_low || flt_chg_rerun_apsd) {
@@ -3257,7 +3197,6 @@ void asus_handle_usb_removal(struct smb_charger *chg)
     int rc;
 
     CHG_DBG("triggered, usb removed\n");
-    ASUSEvtlog("[USB] set_chg_mode:%s\n", usb_type_str[0]);
 
     cancel_delayed_work(&chg->asus_chg->asus_handle_usb_insertion_work);
     cancel_delayed_work(&chg->asus_chg->asus_adapter_adc_normal_work);
@@ -3508,7 +3447,6 @@ void asus_set_usb_connector_work ( struct work_struct *work)
             if (usb_present) { // usb in
                 // TODO: judge whether in charger mode
                 asus_chg->usb_connector_event = OTP_TRIGGER_WITH_AC;
-                ASUSErclog(ASUS_USB_THERMAL_ALERT, "Thermal Alert is triggered, cable 1 otg 0");
                 if (g_ready_to_report_2 || g_charger_mode)
 					extcon_set_state_sync_asus(&asus_chg->usb_thermal_dev, OTP_TRIGGER_WITH_AC);// with AC
                 if (g_asus_hw_id > 2) { // do thermal alert action after ER
@@ -3526,7 +3464,6 @@ void asus_set_usb_connector_work ( struct work_struct *work)
             } else if(otg_en) { // otg en
                 printk("%s: usb not present, but otg enabled\n", __func__);
                 asus_chg->usb_connector_event = OTP_TRIGGER_WITH_AC;
-                ASUSErclog(ASUS_USB_THERMAL_ALERT, "Thermal Alert is triggered, cable 1 otg 1");
                 if (g_ready_to_report_2 || g_charger_mode)
 					extcon_set_state_sync_asus(&asus_chg->usb_thermal_dev, OTP_TRIGGER_WITH_AC);// with AC
                 if (g_asus_hw_id > 2) { // do thermal alert action after ER
@@ -3536,7 +3473,6 @@ void asus_set_usb_connector_work ( struct work_struct *work)
             } else {
                 printk("%s: no cable connected\n", __func__);
                 asus_chg->usb_connector_event = OTP_TRIGGER_WITHOUT_AC;
-                ASUSErclog(ASUS_USB_THERMAL_ALERT, "Thermal Alert is triggered, cable 0 otg 0");
                 if (g_ready_to_report_2 || g_charger_mode)
 					extcon_set_state_sync_asus(&asus_chg->usb_thermal_dev, OTP_TRIGGER_WITHOUT_AC);// without AC
                 if (g_asus_hw_id > 2) { // do thermal alert action after ER
@@ -3549,7 +3485,6 @@ void asus_set_usb_connector_work ( struct work_struct *work)
             printk("%s: USB_THERM_ALERT_HIGH_TRIGGER\n", __func__);
             // set thresh to min~70 deg
             usb_therm_set_thresh_1();
-            ASUSErclog(ASUS_USB_THERMAL_ALERT, "Thermal Alert is dismissed");
             extcon_set_state_sync_asus(&asus_chg->usb_thermal_dev, OTP_NOT_TRIGGER);// not trigger
             // release alert and enable charging only when cable not in
             if (!usb_present) {
@@ -3681,8 +3616,6 @@ void asus_bob_regulator_init(struct smb_charger *chg)
 		chg->bob_vreg = devm_regulator_get(chg->dev, "bob");
 		if (IS_ERR(chg->bob_vreg)) {
 			rc = PTR_ERR(chg->bob_vreg);
-			smblib_err(chg, "Couldn't get bob regulator rc=%d\n",
-					rc);
 			chg->bob_vreg = NULL;
 		}
 	}
@@ -3693,8 +3626,6 @@ void asus_bob_regulator_init(struct smb_charger *chg)
 		chg->bob_ao_vreg = devm_regulator_get(chg->dev, "bob_ao");
 		if (IS_ERR(chg->bob_ao_vreg)) {
 			rc = PTR_ERR(chg->bob_ao_vreg);
-			smblib_err(chg, "Couldn't get bob_ao regulator rc=%d\n",
-					rc);
 			chg->bob_ao_vreg = NULL;
 		}
 	}

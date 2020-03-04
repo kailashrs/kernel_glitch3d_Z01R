@@ -49,13 +49,6 @@
 #include <asm/uaccess.h>
 #include <asm/sections.h>
 
-//bsp +++
-#include <linux/asus_global.h>
-#include <linux/wakeup_reason.h>
-#include <linux/irq.h>
-#include <linux/irqdesc.h>
-//bsp ---
-
 #define CREATE_TRACE_POINTS
 #include <trace/events/printk.h>
 
@@ -362,9 +355,6 @@ __packed __aligned(4)
  */
 DEFINE_RAW_SPINLOCK(logbuf_lock);
 
-static char *asus_log_buf = NULL;
-static bool is_logging_to_asus_buffer = false;
-void *memset_nc(void *s, int c, size_t count);
 #ifdef CONFIG_PRINTK
 DECLARE_WAIT_QUEUE_HEAD(log_wait);
 /* the next printk record to read by syslog(READ) or /proc/kmsg */
@@ -402,7 +392,6 @@ static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
 static char *log_buf = __log_buf;
 static u32 log_buf_len = __LOG_BUF_LEN;
 
-int nSuspendInProgress;
 /* Return log buffer address */
 char *log_buf_addr_get(void)
 {
@@ -1103,7 +1092,7 @@ void __init setup_log_buf(int early)
 		free, (free * 100) / __LOG_BUF_LEN);
 }
 
-static bool __read_mostly ignore_loglevel ;
+static bool __read_mostly ignore_loglevel;
 
 static int __init ignore_loglevel_setup(char *str)
 {
@@ -1180,7 +1169,6 @@ static inline void boot_delay_msec(int level)
 
 static bool printk_time = IS_ENABLED(CONFIG_PRINTK_TIME);
 module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
-#include <linux/rtc.h>
 
 static size_t print_time(u64 ts, char *buf)
 {
@@ -1549,12 +1537,8 @@ static void call_console_drivers(int level,
 		return;
 
 	for_each_console(con) {
-		if(strncmp(con->name,"logk",4) != 0){
-			if (level >= console_loglevel && !ignore_loglevel)
-				continue;
-			if (exclusive_console && con != exclusive_console)
-				continue;
-	}
+		if (exclusive_console && con != exclusive_console)
+			continue;
 		if (!(con->flags & CON_ENABLED))
 			continue;
 		if (!con->write)
@@ -1764,9 +1748,6 @@ asmlinkage int vprintk_emit(int facility, int level,
 	/* cpu currently holding logbuf_lock in this function */
 	static unsigned int logbuf_cpu = UINT_MAX;
 	
-	if ( g_user_klog_mode == 0 )
-		return 0;
-	
 	if (level == LOGLEVEL_SCHED) {
 		level = LOGLEVEL_DEFAULT;
 		in_sched = true;
@@ -1927,8 +1908,6 @@ int vprintk_default(const char *fmt, va_list args)
 }
 EXPORT_SYMBOL_GPL(vprintk_default);
 
-//extern int g_user_dbg_mode;
-extern unsigned int asusdebug_enable;
 /**
  * printk - print a kernel message
  * @fmt: format string
@@ -1954,12 +1933,6 @@ asmlinkage __visible int printk(const char *fmt, ...)
 {
 	va_list args;
 	int r;
-
-	if (asusdebug_enable==0x11223344)
-		return 0;
-
-	if ( g_user_klog_mode==0 )
-		return 0;
 
 	va_start(args, fmt);
 	r = vprintk_func(fmt, args);
@@ -2143,8 +2116,6 @@ MODULE_PARM_DESC(console_suspend, "suspend console during suspend"
  */
 void suspend_console(void)
 {
-	ASUSEvtlog("[UTS] System Suspend\n");
-	nSuspendInProgress = 1;
 	if (!console_suspend_enabled)
 		return;
 	console_lock();
@@ -2152,16 +2123,8 @@ void suspend_console(void)
 	up_console_sem();
 }
 
-extern char g_asus_wsName[256];
-extern unsigned int pm_wakeup_irq;
-extern int gic_irq_cnt,gic_resume_irq[32];
 void resume_console(void)
 {
-	struct irq_desc *desc;
-	const char *name = "null";
-	int i = 0;
-	nSuspendInProgress = 0;
-
 	if (!console_suspend_enabled)
 		return;
 	down_console_sem();
@@ -3315,22 +3278,3 @@ void show_regs_print_info(const char *log_lvl)
 }
 
 #endif
-void printk_buffer_rebase(void)
-{
-/*
- * This will NOT do real printk buffer rebase.
- * We just set a flag to let vprintk_emit() also write
- * kernel log to our remapped buffer.
- * Then we can save the content of our remapped buffer while rebooting
- * after the device crash.
- */
-	asus_log_buf = (char *) PRINTK_BUFFER_VA;
-	if (!asus_log_buf) {
-		printk("%s: asus_log_buf is NULL\n", __func__);
-		return;
-	}
-	memset_nc(asus_log_buf, 0, PRINTK_BUFFER_SLOT_SIZE);
-	is_logging_to_asus_buffer = true;
-
-}
-EXPORT_SYMBOL(printk_buffer_rebase);
