@@ -251,8 +251,6 @@ static int alarmtimer_suspend(struct device *dev)
 	struct rtc_device *rtc;
 	int i;
 	int ret;
-	struct alarm *alarm = NULL;//ASUS BSP ADD TO RECORD
-
 
 	spin_lock_irqsave(&freezer_delta_lock, flags);
 	min = freezer_delta;
@@ -277,10 +275,7 @@ static int alarmtimer_suspend(struct device *dev)
 			continue;
 		delta = ktime_sub(next->expires, base->gettime());
 		if (!min.tv64 || (delta.tv64 < min.tv64))
-		{
 			min = delta;
-			alarm = container_of(next, struct alarm, node);//ASUS BSP ADD TO RECORD
-		}
 	}
 	if (min.tv64 == 0)
 		return 0;
@@ -297,13 +292,7 @@ static int alarmtimer_suspend(struct device *dev)
 	/* Set alarm, if in the past reject suspend briefly to handle */
 	ret = rtc_timer_start(rtc, &rtctimer, now, ktime_set(0, 0));
 	if (ret < 0)
-	{
-		if(alarm && alarm->function)
-		{
-			printk("[ASUS][ALARM]in the past type=%d %pf,source pid=%d,tgid=%d %s\n",alarm->type,alarm->function,alarm->pid,alarm->tgid,alarm->comm);//ASUS BSP ADD TO RECORD
-		}
 		__pm_wakeup_event(ws, MSEC_PER_SEC);
-	}
 	return ret;
 }
 
@@ -365,11 +354,6 @@ void alarm_init(struct alarm *alarm, enum alarmtimer_type type,
 	}
 	alarm->state = ALARMTIMER_STATE_INACTIVE;
 
-//ASUS BSP +++
-	alarm->pid = current->pid;
-	alarm->tgid = current->tgid;
-	memcpy(alarm->comm,current->comm,sizeof(alarm->comm));
-//ASUS BSP ---
 }
 EXPORT_SYMBOL_GPL(alarm_init);
 
