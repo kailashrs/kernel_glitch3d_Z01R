@@ -5,7 +5,7 @@ export ARCH="arm64"
 export CROSS_COMPILE="aarch64-linux-gnu-"
 export CROSS_COMPILE_ARM32="arm-linux-gnueabi-"
 make O=out Z01R_defconfig
-make CC=clang O=out -j$(nproc --all)
+make CC=clang LD=ld.lld O=out -j$(nproc --all)
 cd ..
 cd AnyKernel3
 rm zImage
