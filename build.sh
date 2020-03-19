@@ -1,10 +1,11 @@
 make clean
+export PATH="/home/kailashrs/5z/proton_clang/bin:${PATH}"
+export LD_LIBRARY_PATH="$/home/kailashrs/5z/proton_clang/bin../lib:$LD_LIBRARY_PATH"
 export ARCH="arm64"
-export PATH="/usr/lib/ccache/bin:$PATH"
-export CROSS_COMPILE="ccache /home/kailashrs/5z/aarch64-elf-gcc/bin/aarch64-elf-"
-export CROSS_COMPILE_ARM32="ccache /home/kailashrs/5z/arm-eabi-gcc/bin/arm-eabi-"
+export CROSS_COMPILE="aarch64-linux-gnu-"
+export CROSS_COMPILE_ARM32="arm-linux-gnueabi-"
 make O=out Z01R_defconfig
-make O=out -j$(nproc --all)
+make CC=clang O=out -j$(nproc --all)
 cd ..
 cd AnyKernel3
 rm zImage
