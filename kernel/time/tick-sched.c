@@ -688,7 +688,7 @@ static inline bool local_timer_softirq_pending(void)
 {
 	return local_softirq_pending() & BIT(TIMER_SOFTIRQ);
 }
-
+#ifdef CONFIG_NO_HZ_FULL
 static ktime_t tick_nohz_stop_sched_tick(struct tick_sched *ts,
 					 ktime_t now, int cpu)
 {
@@ -792,11 +792,9 @@ static ktime_t tick_nohz_stop_sched_tick(struct tick_sched *ts,
 		delta = KTIME_MAX;
 	}
 
-#ifdef CONFIG_NO_HZ_FULL
 	/* Limit the tick delta to the maximum scheduler deferment */
 	if (!ts->inidle)
 		delta = min(delta, scheduler_tick_max_deferment());
-#endif
 
 	/* Calculate the next expiry time */
 	if (delta < (KTIME_MAX - basemono))
@@ -848,7 +846,7 @@ out:
 	ts->sleep_length = ktime_sub(dev->next_event, now);
 	return tick;
 }
-
+#endif
 static void tick_nohz_restart_sched_tick(struct tick_sched *ts, ktime_t now)
 {
 	/* Update jiffies first */
@@ -889,7 +887,7 @@ static void tick_nohz_full_update_tick(struct tick_sched *ts)
 		tick_nohz_restart_sched_tick(ts, ktime_get());
 #endif
 }
-
+#ifdef CONFIG_NO_HZ_FULL
 static bool can_stop_idle_tick(int cpu, struct tick_sched *ts)
 {
 	/*
@@ -942,7 +940,7 @@ static bool can_stop_idle_tick(int cpu, struct tick_sched *ts)
 
 	return true;
 }
-
+#endif
 /**
  * tick_nohz_idle_enter - stop the idle tick from the idle task
  *
