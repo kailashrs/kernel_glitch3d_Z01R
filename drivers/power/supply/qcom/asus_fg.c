@@ -726,6 +726,7 @@ restart:
 				g_wp_state = 1;
 				g_liquid_state = 1;
 				g_wmsg_state = 1;
+                ASUSErclog(ASUS_WATER_ALERT, "Water_alert is triggered");
 			} else {
 				goto restart;
 			}
@@ -740,6 +741,7 @@ restart:
 
 //	pr_err("%s low_thr(%d), high_thr(%d), state_request(%d)\n", __func__, g_adc_param.low_thr, g_adc_param.high_thr, g_adc_param.state_request);
 	pr_err("%s adc(%d), g_wp_state(%d), low_thr(%d), high_thr(%d), state_request(%d)\n", __func__, adc, g_wp_state, g_adc_param.low_thr, g_adc_param.high_thr, g_adc_param.state_request);
+    ASUSEvtlog("%s adc(%d), g_wp_state(%d), low_thr(%d), high_thr(%d), state_request(%d)\n", __func__, adc, g_wp_state, g_adc_param.low_thr, g_adc_param.high_thr, g_adc_param.state_request);
 	g_adc_param.channel = 0x76;
 	g_adc_param.timer_interval = ADC_MEAS2_INTERVAL_1S;
 	g_adc_param.btm_ctx = chip;
@@ -1603,6 +1605,7 @@ done:
                                                 batt_safety_upgrade_params[new_condition].vbat_full_mv);
             if (2 == g_cycle_count_data.reload_condition) {
                 BAT_DBG("%s: change to condition 2, reload according profile\n", __func__);
+                ASUSEvtlog("[BAT]change to condition 2, reload according profile\n");
                 asus_clear_reload_battery_profile(chip);
             }
         }
@@ -2631,6 +2634,7 @@ void asus_check_rconn(void)
 		{
 			//never set
 			printk("[BAT] rconn is not set");
+			ASUSEvtlog("[BAT] rconn is not set");
 			asus_clear_reload_battery_profile(g_fgChip);
 		}
 		else if(ret == 0)
@@ -2640,24 +2644,29 @@ void asus_check_rconn(void)
 				if (g_fgChip->asus_profile_changed) {
 					g_fgChip->asus_profile_changed = 0;
 					printk("[BAT] profile reloaded, no need to update rconn again\n");
+					ASUSEvtlog("[BAT] profile reloaded, no need to update rconn again");
 					asus_set_RCONN_RECORED(g_fgChip->dt.rconn_mohms);
 					return;
 				}
 				printk("[BAT] rconn need to update \n");
+				ASUSEvtlog("[BAT] rconn need to update,set rconn");
 				asus_clear_reload_battery_profile(g_fgChip);
 			}
 			else
 			{
+				ASUSEvtlog("[BAT] rconn is the same,rconn %d\n",rconn);
 				printk("[BAT] rconn is the same,rconn %d\n",rconn);
 			}
 		}
 		else
 		{
+			ASUSEvtlog("[BAT]fail to read rconn,just do it next boot time\n");
 			printk("[BAT]fail to read rconn,just do it next boot time\n");
 		}
 	}
 	else
 	{
+		ASUSEvtlog("[BAT]fail to read rconn,just do it next boot time,g_fgChip/g_fgChip->dt.rconn_mohms\n");
 		printk("[BAT]fail to read rconn,just do it next boot time,g_fgChip/g_fgChip->dt.rconn_mohms\n");
 	}
 

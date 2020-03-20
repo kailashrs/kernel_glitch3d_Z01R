@@ -2159,6 +2159,7 @@ int smblib_get_prop_batt_health(struct smb_charger *chg,
 						pval.intval, effective_fv_uv);
                 if (!chg->asus_chg->bat_ovp_flag) {
                     chg->asus_chg->bat_ovp_flag = true;
+                    ASUSErclog(ASUS_OUTPUT_OVP, "BAT_OVP  is triggered");
                 }
 				goto done;
 			}
@@ -3436,6 +3437,7 @@ int smblib_set_prop_pd_in_hard_reset(struct smb_charger *chg,
 
 	chg->pd_hard_reset = val->intval;
     CHG_DBG("%s: pd_hard_reset = %d\n", __func__, chg->pd_hard_reset);
+    ASUSEvtlog("[CHG] pd_hard_reset = %d\n", chg->pd_hard_reset);
 	rc = smblib_masked_write(chg, TYPE_C_INTRPT_ENB_SOFTWARE_CTRL_REG,
 			EXIT_SNK_BASED_ON_CC_BIT,
 			(chg->pd_hard_reset) ? EXIT_SNK_BASED_ON_CC_BIT : 0);
@@ -3722,8 +3724,11 @@ irqreturn_t smblib_handle_batt_psy_changed(int irq, void *data)
 	struct smb_charger *chg = irq_data->parent_data;
 
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: %s\n", irq_data->name);
+	if (!strncmp(irq_data->name, "bat-low", 7))
+		ASUSEvtlog("[BAT] Low Voltage");
 	if (!strncmp(irq_data->name, "bat-ov", 6)) {
 		CHG_DBG_E("BAT_OVP  is triggered\n");
+		//ASUSErclog(ASUS_OUTPUT_OVP, "BAT_OVP  is triggered");
 	}
 	power_supply_changed(chg->batt_psy);
 	return IRQ_HANDLED;
@@ -5472,6 +5477,9 @@ static void smblib_legacy_detection_work(struct work_struct *work)
 	g_legacy_det_done = true;
 	chg->asus_chg->asus_adapter_detecting_flag = false;
 	CHG_DBG("%s: legacy workaround done legacy = %d rp_high = %d\n", __func__, legacy, rp_high);
+    if (g_charger_mode) {
+        ASUSEvtlog("%s: legacy workaround done legacy = %d rp_high = %d\n", __func__, legacy, rp_high);
+    }
 
 	if(0 == chg->asus_chg->asus_qc_flag){
 		chg->asus_chg->legacy_cable_flag = legacy;

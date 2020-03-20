@@ -989,9 +989,11 @@ int fg_get_prop_capacity(struct fg_chip *chip, int *val)
 			if (jiffies > chip->asus_report_last_msoc_end_time + 60*HZ) {
 				chip->asus_report_last_msoc_end_time = 0;
 				BAT_DBG("report last msoc(%d) timeout, now msoc:%d\n", chip->last_report_msoc, msoc);
+				ASUSEvtlog("report last msoc(%d) timeout, now msoc:%d\n", chip->last_report_msoc, msoc);
 			} else if (msoc == 0 && chip->last_report_msoc >= 2) {
 				*val = chip->last_report_msoc;
 				BAT_DBG("force report last reported msoc(%d) while fg not ready!\n", chip->last_report_msoc);
+				ASUSEvtlog("force report last reported msoc(%d) while fg not ready!\n", chip->last_report_msoc);
 			}
 		}
 	}
@@ -2137,6 +2139,7 @@ static int fg_rconn_config(struct fg_chip *chip)
 		return 0;
 	}
 	printk("[ASUS][FG] Set rconn %d\n",chip->dt.rconn_mohms);
+	ASUSEvtlog("[ASUS][FG] Set rconn %d\n",chip->dt.rconn_mohms);
 	rc = fg_get_sram_prop(chip, FG_SRAM_ESR, &esr_uohms);
 	if (rc < 0) {
 		pr_err("failed to get ESR, rc=%d\n", rc);
@@ -5184,6 +5187,7 @@ static irqreturn_t fg_empty_soc_irq_handler(int irq, void *data)
 
 	fg_dbg(chip, FG_IRQ, "irq %d triggered\n", irq);
     BAT_DBG_E("empty soc irq %d triggered\n", irq);
+    ASUSEvtlog("empty soc irq %d triggered\n", irq);
 	if (batt_psy_initialized(chip))
 		power_supply_changed(chip->batt_psy);
 
