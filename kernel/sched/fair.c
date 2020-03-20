@@ -5966,7 +5966,6 @@ static unsigned long cpu_util_without(int cpu, struct task_struct *p)
 {
 	struct cfs_rq *cfs_rq;
 	unsigned int util;
-	struct cfs_rq *cfs_rq;
 
 #ifdef CONFIG_SCHED_WALT
 	/*
@@ -6055,29 +6054,6 @@ static unsigned long cpu_util_without(int cpu, struct task_struct *p)
 	 * the cpu_util call.
 	 */
 	return min_t(unsigned long, util, capacity_orig_of(cpu));
-}
-
-/*
- * __cpu_norm_util() returns the cpu util relative to a specific capacity,
- * i.e. it's busy ratio, in the range [0..SCHED_LOAD_SCALE], which is useful for
- * energy calculations.
- *
- * Since util is a scale-invariant utilization defined as:
- *
- *   util ~ (curr_freq/max_freq)*1024 * capacity_orig/1024 * running_time/time
- *
- * the normalized util can be found using the specific capacity.
- *
- *   capacity = capacity_orig * curr_freq/max_freq
- *
- *   norm_util = running_time/time ~ util/capacity
- */
-static unsigned long __cpu_norm_util(unsigned long util, unsigned long capacity)
-{
-	if (util >= capacity)
-		return SCHED_CAPACITY_SCALE;
-
-	return (util << SCHED_CAPACITY_SHIFT)/capacity;
 }
 
 static unsigned long group_max_util(struct energy_env *eenv, int cpu_idx)
