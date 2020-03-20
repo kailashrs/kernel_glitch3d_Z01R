@@ -243,12 +243,6 @@ void save_stack_trace_asus(struct task_struct *tsk, struct stack_trace *trace)
     asus_save_stack = 0;
 }
 
-void dump_stack(void)
-{
-	dump_backtrace(NULL, NULL);
-}
-EXPORT_SYMBOL(dump_stack);
-
 #ifdef CONFIG_PREEMPT
 #define S_PREEMPT " PREEMPT"
 #else
