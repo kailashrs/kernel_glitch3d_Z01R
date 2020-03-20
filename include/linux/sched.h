@@ -2443,7 +2443,7 @@ static inline pid_t task_pid_vnr(struct task_struct *tsk)
 }
 
 
-static inline pid_t task_tgid_nr(struct task_struct *tsk)
+static inline pid_t task_tgid_nr(const struct task_struct *tsk)
 {
 	return tsk->tgid;
 }
@@ -2530,7 +2530,7 @@ static inline int pid_alive(const struct task_struct *p)
  *
  * Return: 1 if the task structure is init. 0 otherwise.
  */
-static inline int is_global_init(struct task_struct *tsk)
+static inline int is_global_init(const struct task_struct *tsk)
 {
 	return task_tgid_nr(tsk) == 1;
 }

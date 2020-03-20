@@ -4155,7 +4155,6 @@ static void mcp25xxfd_debugfs_remove(struct mcp25xxfd_priv *priv)
 #else
 static void mcp25xxfd_debugfs_add(struct mcp25xxfd_priv *priv)
 {
-	return 0;
 }
 
 static void mcp25xxfd_debugfs_remove(struct mcp25xxfd_priv *priv)
