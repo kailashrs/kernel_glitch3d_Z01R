@@ -43,9 +43,6 @@ extern struct timezone sys_tz;
 extern char asus_build_ver[64];
 #define RT_MUTEX_HAS_WAITERS	1UL
 #define RT_MUTEX_OWNER_MASKALL	1UL
-struct mutex fake_mutex;
-struct completion fake_completion;
-struct rt_mutex fake_rtmutex;
 int asus_rtc_read_time(struct rtc_time *tm)
 {
     struct timespec ts;
@@ -210,46 +207,6 @@ void save_lock_info(struct thread_info *pti){
 	
 	if( pti == NULL) {
 		return;
-	}
-	
-	//dump mutex
-	if(pti->pWaitingMutex != NULL && pti->pWaitingMutex != &fake_mutex ) {
-		if (pti->pWaitingMutex->name) {
-			save_log("    Mutex:%s,", pti->pWaitingMutex->name + 1);
-			printk("    Mutex:%s,", pti->pWaitingMutex->name + 1);
-		}else
-			printk("pti->pWaitingMutex->name == NULL\r\n");
-		
-		if (pti->pWaitingMutex->owner 
-				&& pti->pWaitingMutex->owner->comm) {
-			save_log(" Owned by pID(%d)", pti->pWaitingMutex->owner->pid);
-			printk(" Owned by pID(%d)", pti->pWaitingMutex->owner->pid);
-			
-			save_log(" %s",pti->pWaitingMutex->owner->comm);
-			printk(" %s",pti->pWaitingMutex->owner->comm);
-		}else
-			printk("pti->pWaitingMutex->mutex_owner is NULL\r\n");
-	}
-	
-	//dump completion	
-	if(pti->pWaitingCompletion!=NULL && pti->pWaitingCompletion != &fake_completion) {
-		if (pti->pWaitingCompletion->name)
-			save_log("    Completion:wait_for_completion %s", pti->pWaitingCompletion->name );
-		else
-			printk("pti->pWaitingCompletion->name == NULL\r\n");
-	}
-	
-	//dump  RTMutex	
-	if(pti->pWaitingRTMutex != NULL && pti->pWaitingRTMutex != &fake_rtmutex) {
-		struct task_struct *temp = rt_mutex_owner(pti->pWaitingRTMutex);
-		if (temp)
-			save_log("    RTMutex: Owned by pID(%d)", temp->pid);
-		else
-			printk("pti->pWaitingRTMutex->temp == NULL\r\n");
-		if (temp->comm)
-			save_log(" %s", temp->pid, temp->comm);
-		else
-			printk("pti->pWaitingRTMutex->temp->comm == NULL\r\n");
 	}
 	
 	return ;
@@ -1357,11 +1314,6 @@ static int __init proc_asusdebug_init(void)
 	
 	mutex_init(&mA);
 	mutex_init(&mA_erc);
-	fake_mutex.owner = current;
-	//fake_mutex.mutex_owner_asusdebug = current;
-	fake_mutex.name = " fake_mutex";
-	strcpy(fake_completion.name," fake_completion");
-	fake_rtmutex.owner = current;
 	ASUSEvtlog_workQueue  = create_singlethread_workqueue("ASUSEVTLOG_WORKQUEUE");
 	ASUSErclog_workQueue  = create_singlethread_workqueue("ASUSERCLOG_WORKQUEUE"); //ASUS_BSP johnchain+++ add for record ASUSErclog
 	
