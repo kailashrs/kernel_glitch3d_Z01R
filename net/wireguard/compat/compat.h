@@ -731,7 +731,7 @@ static inline void cpu_to_le32_array(u32 *buf, unsigned int words)
 }
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+#if 0
 #include <crypto/algapi.h>
 static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 				  unsigned int size)
@@ -750,7 +750,7 @@ static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 	} else {
 		if (unlikely(dst != src1))
 			memmove(dst, src1, size);
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)
+#if 0
 		crypto_xor(dst, src2, size);
 #else
 		__crypto_xor(dst, src2, size);
@@ -767,7 +767,7 @@ static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 #define hlist_add_behind(a, b) hlist_add_after(b, a)
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0)
+#if 0
 #define totalram_pages() totalram_pages
 #endif
 
